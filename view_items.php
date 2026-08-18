@@ -1,0 +1,81 @@
+<?php
+
+session_start();
+
+include "db_conn.php";
+
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit();
+}
+
+$sql = "SELECT Item.item_id, Item.report_type, Item.title, Item.description,
+               Item.location, Item.date_occurred, Item.date_reported, Item.status,
+               Category.category_name, User.name AS reported_by_name
+        FROM Item
+        JOIN Category ON Item.category_id = Category.category_id
+        JOIN User ON Item.reported_by = User.user_id
+        ORDER BY Item.date_reported DESC";
+
+$result = $conn->query($sql);
+
+// map DB status text to the badge color class
+function statusBadgeClass($status) {
+    switch ($status) {
+        case "Approved": return "badge-approved";
+        case "Claimed":  return "badge-approved";
+        case "Rejected": return "badge-rejected";
+        default:         return "badge-pending"; // Pending
+    }
+}
+
+$pageTitle = "View Items";
+$pageFile  = "view_items.php";
+include 'header.php';
+?>
+
+    <h1>EWU Lost &amp; Found</h1>
+    <h2 class="subtitle">All Reported Items</h2>
+
+    <div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Date Occurred</th>
+                <th>Date Reported</th>
+                <th>Status</th>
+                <th>Reported By</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = $result->fetch_assoc()) { ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row['report_type']); ?></td>
+                    <td><?php echo htmlspecialchars($row['title']); ?></td>
+                    <td><?php echo htmlspecialchars($row['category_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row['location']); ?></td>
+                    <td><?php echo htmlspecialchars($row['date_occurred']); ?></td>
+                    <td><?php echo htmlspecialchars($row['date_reported']); ?></td>
+                    <td>
+                        <span class="badge <?php echo statusBadgeClass($row['status']); ?>">
+                            <?php echo htmlspecialchars($row['status']); ?>
+                        </span>
+                    </td>
+                    <td><?php echo htmlspecialchars($row['reported_by_name']); ?></td>
+                    <td class="desc-col"><?php echo htmlspecialchars($row['description']); ?></td>
+                </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+    </div>
+
+    <p style="margin-top:18px;">
+        <a href="student_dashboard.php" class="link-arrow">Back to Dashboard</a>
+    </p>
+
+<?php include 'footer.php'; ?>
