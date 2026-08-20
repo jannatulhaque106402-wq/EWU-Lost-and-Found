@@ -12,7 +12,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST["password"];
 
     // Validate EWU student email format
-    // Pattern: anything before @, then exactly @std.ewubd.edu
     if (!preg_match("/^[a-zA-Z0-9._-]+@std\.ewubd\.edu$/", $email)) {
 
         $errorMessage = "Please use your EWU student email (format: ****-*-**-***@std.ewubd.edu).";
@@ -35,34 +34,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $user = $result->fetch_assoc();
 
-            if (
-                password_verify(
-                    $password,
-                    $user["password"]
-                )
-            ) {
+            if (password_verify($password, $user["password"])) {
 
-                $_SESSION["user_id"]
-                    = $user["user_id"];
+                $_SESSION["user_id"] = $user["user_id"];
+                $_SESSION["name"] = $user["name"];
 
-                $_SESSION["name"]
-                    = $user["name"];
+                // Keep the role exactly as it is in the database
+                $_SESSION["role"] = $user["role"];
 
-                $_SESSION["role"]
-                    = $user["role"];
+                // Check Admin regardless of capitalization
+                if (strtolower(trim($user["role"])) === "admin") {
 
-
-                if ($user["role"] == "Admin") {
-
-                    header(
-                        "Location: admin_dashboard.php"
-                    );
+                    header("Location: admin_dashboard.php");
 
                 } else {
 
-                    header(
-                        "Location: student_dashboard.php"
-                    );
+                    header("Location: student_dashboard.php");
                 }
 
                 exit();
@@ -81,39 +68,47 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $pageTitle = "EWU Lost & Found — login.php";
 $pageFile  = "login.php";
+
 include 'header.php';
+
 ?>
 
-    <h1>EWU Lost &amp; Found Management System</h1>
-    <h2 class="subtitle">Login</h2>
+<h1>EWU Lost &amp; Found Management System</h1>
+<h2 class="subtitle">Login</h2>
 
-    <?php if (!empty($errorMessage)): ?>
-        <div class="msg-error"><?php echo htmlspecialchars($errorMessage); ?></div>
-    <?php endif; ?>
+<?php if (!empty($errorMessage)): ?>
 
-    <form method="POST">
+    <div class="msg-error">
+        <?php echo htmlspecialchars($errorMessage); ?>
+    </div>
 
-        <label for="email">Email</label>
-        <input type="email"
-               id="email"
-               name="email"
-               placeholder="#### - # - ## - ###@std.ewubd.edu"
-               pattern="[a-zA-Z0-9._-]+@std\.ewubd\.edu"
-               title="Please use your EWU student email (e.g., ****-*-**-***@std.ewubd.edu)"
-               required>
+<?php endif; ?>
 
-        <label for="password">Password</label>
-        <input type="password"
-               id="password"
-               name="password"
-               required>
+<form method="POST">
 
-        <button type="submit">Login</button>
+    <label for="email">Email</label>
 
-    </form>
+    <input type="email"
+           id="email"
+           name="email"
+           placeholder="#### - # - ## - ###@std.ewubd.edu"
+           pattern="[a-zA-Z0-9._-]+@std\.ewubd\.edu"
+           title="Please use your EWU student email (e.g., ****-*-**-***@std.ewubd.edu)"
+           required>
 
-    <p style="margin-top:18px;">
-        <a href="register.php" class="link-arrow">Create Student Account</a>
-    </p>
+    <label for="password">Password</label>
+
+    <input type="password"
+           id="password"
+           name="password"
+           required>
+
+    <button type="submit">Login</button>
+
+</form>
+
+<p style="margin-top:18px;">
+    <a href="register.php" class="link-arrow">Create Student Account</a>
+</p>
+
 <?php include 'footer.php'; ?>
-

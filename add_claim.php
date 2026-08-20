@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$items = $conn->query("SELECT item_id, title, report_type FROM Item WHERE status = 'Approved' OR status = 'Pending' ORDER BY date_reported DESC");
+$items = $conn->query("SELECT item_id, title, report_type FROM Item WHERE report_type = 'Found' AND (status = 'Approved' OR status = 'Pending') ORDER BY date_reported DESC");
 
 $pageTitle = "Submit Claim";
 $pageFile  = "add_claim.php";
